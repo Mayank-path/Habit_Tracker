@@ -1,38 +1,12 @@
-const mongoose = require('mongoose');
 
-const habitSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
-  },
-  completedDates: {
-    type: [Date],
-    default: []
-  }
-});
+const m=require("mongoose")
 
-const userSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email_id: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  habits: {
-    type: [habitSchema],
-    default: []
-  }
-}, {
-  collection: 'data'
-});
+const user_data= new m.Schema({
+  userName:{type: String, required: true},
+  email:{type: String, required: true},
+  password:{type:String, required: true}
+})
 
-module.exports = mongoose.model('User', userSchema);
+const User= m.model("User",user_data);
+
+module.exports=User;
