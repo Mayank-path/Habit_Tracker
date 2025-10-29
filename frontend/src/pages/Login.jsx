@@ -19,9 +19,9 @@ const Login = () => {
       
       login({
         userId: data.userId,
-        token: data.token,
         email: email_id,
-      });
+      },data.token,);
+      
 
       
         alert('Login successfull');

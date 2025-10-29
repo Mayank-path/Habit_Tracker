@@ -1,14 +1,47 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Manage from '../components/manage';
 import Stat from '../components/stat';
+import dayjs from 'dayjs';
 import Calendar from '../components/calendar';
 import { useAuth } from '../auth/AuthContext';
-
+import axios from '../api/axios';
 
 const Card = () => {
-    const { user, logout } = useAuth(); // Access user and logout from AuthContext
-    const [activeSection, setActiveSection] = useState('calendar'); // Default to calendar
-  
+    const { user, logout , token } = useAuth(); 
+    const [activeSection, setActiveSection] = useState('calendar'); 
+    const [habit ,SetHabits] = useState([])
+
+    const [nofhabit, Setnoofhabit] = useState(0) 
+    const[complete ,setComplete] = useState(0)
+    
+    const fetchHabits = useCallback(async () => {
+      try {
+        const {data} = await axios.get("/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
+        SetHabits(data)
+        Setnoofhabit(data.length)
+        
+       
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
+    },[token]);
+
+    const fetchCompletedToday = useCallback(async () => {
+      try {
+        const { data } = await axios.get("/habits/completeHabit", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setComplete(data.count); 
+      } catch (err) {
+        console.error("Error fetching today's completed habits:", err);
+      }
+    }, [token]);
+
+    useEffect(() => {
+      fetchHabits()
+      fetchCompletedToday()
+    },[fetchHabits,fetchCompletedToday])
+     
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-8">
         {/* Header */}
@@ -57,11 +90,11 @@ const Card = () => {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4  mb-8 ml-126">
           <div className="bg-white shadow rounded-lg p-4 flex items-center gap-4">
             <div className="bg-blue-100 text-blue-600 p-2 rounded-full">🎯</div>
             <div>
-              <p className="text-lg font-semibold">0</p>
+              <p className="text-lg font-semibold">{nofhabit}</p>
               <p className="text-sm text-gray-500">Total Habits</p>
             </div>
           </div>
@@ -69,26 +102,11 @@ const Card = () => {
           <div className="bg-white shadow rounded-lg p-4 flex items-center gap-4">
             <div className="bg-green-100 text-green-600 p-2 rounded-full">📈</div>
             <div>
-              <p className="text-lg font-semibold">0</p>
+              <p className="text-lg font-semibold">{complete}</p>
               <p className="text-sm text-gray-500">Completed Today</p>
             </div>
           </div>
   
-          <div className="bg-white shadow rounded-lg p-4 flex items-center gap-4">
-            <div className="bg-purple-100 text-purple-600 p-2 rounded-full">🗓️</div>
-            <div>
-              <p className="text-lg font-semibold">0%</p>
-              <p className="text-sm text-gray-500">Monthly Average</p>
-            </div>
-          </div>
-  
-          <div className="bg-white shadow rounded-lg p-4 flex items-center gap-4">
-            <div className="bg-orange-100 text-orange-600 p-2 rounded-full">🔥</div>
-            <div>
-              <p className="text-lg font-semibold">0</p>
-              <p className="text-sm text-gray-500">Day Streak</p>
-            </div>
-          </div>
         </div>
   
         {/* Conditional Components */}
