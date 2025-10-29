@@ -1,117 +1,170 @@
+import React, { useEffect, useState } from "react";
+import axios from "../api/axios";
+import dayjs from "dayjs";
+import { useAuth } from "../auth/AuthContext";
 
-import React, { useEffect, useState } from 'react';
-import dayjs from 'dayjs';
-
-const Calendar = ({ userId }) => {
+const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(dayjs());
   const [habits, setHabits] = useState([]);
+  const { token } = useAuth();
 
-  const startOfMonth = currentDate.startOf('month');
-  const endOfMonth = currentDate.endOf('month');
+  const startOfMonth = currentDate.startOf("month");
+  const endOfMonth = currentDate.endOf("month");
   const startDay = startOfMonth.day();
   const totalDays = endOfMonth.date();
 
+  const today = dayjs().startOf("day");
+
+  // Build calendar days
   const daysArray = [];
   for (let i = 0; i < startDay; i++) daysArray.push(null);
   for (let i = 1; i <= totalDays; i++) daysArray.push(i);
 
+  // Fetch habits from backend
   const fetchHabits = async () => {
+    if (!token) return;
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${userId}/stats`);
-      const data = await response.json();
-      if (data.stats) setHabits(data.stats);
-    } catch (error) {
-      console.error('Error fetching habits', error);
+      const { data } = await axios.get("/habits/showHabit", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHabits(Array.isArray(data) ? data : data.habits || []);
+    } catch (err) {
+      console.error("Error fetching habits:", err);
     }
   };
 
-  const markComplete = async (habitName, date) => {
+  // Toggle completion for today
+  const toggleHabitCompletion = async (habitId) => {
+    const date = today.toDate(); // send Date object
+
+    // Optimistic UI update
+    setHabits((prev) =>
+      prev.map((habit) => {
+        if (habit._id !== habitId) return habit;
+        const isDone = habit.dates_completed?.some((d) =>
+          dayjs(d).isSame(today, "day")
+        );
+        let newDates;
+        if (isDone) {
+          newDates = habit.dates_completed.filter(
+            (d) => !dayjs(d).isSame(today, "day")
+          );
+        } else {
+          newDates = [...habit.dates_completed, date];
+        }
+        return { ...habit, dates_completed: newDates };
+      })
+    );
+
+    // Send to backend
     try {
-      await fetch(`http://localhost:5000/api/auth/${userId}/completeHabit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ habitName, date: date.toISOString() })
-      });
-      fetchHabits();
-    } catch (error) {
-      console.error('Error marking habit complete', error);
+      await axios.put(
+        `/habits/markHbait/${habitId}`,
+        { date },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error("Error updating habit:", err);
+      fetchHabits(); // revert if API fails
     }
   };
 
   useEffect(() => {
-    if (userId) fetchHabits();
-  }, [userId]);
+    if (token) fetchHabits();
+  }, [token]);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 bg-white rounded-lg shadow">
-      <div className="flex items-center justify-between px-4 py-2">
-        <button 
-          onClick={() => setCurrentDate(currentDate.subtract(1, 'month'))}
+    <div className="max-w-6xl mx-auto p-4 bg-white rounded-lg shadow">
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between px-4 py-2 mb-2">
+        <button
+          onClick={() => setCurrentDate(currentDate.subtract(1, "month"))}
           className="text-2xl font-bold text-gray-500 hover:text-gray-700"
         >
           &lt;
         </button>
         <h2 className="text-xl font-semibold text-center">
-          {currentDate.format('MMMM YYYY')}
+          {currentDate.format("MMMM YYYY")}
         </h2>
-        <button 
-          onClick={() => setCurrentDate(currentDate.add(1, 'month'))}
+        <button
+          onClick={() => setCurrentDate(currentDate.add(1, "month"))}
           className="text-2xl font-bold text-gray-500 hover:text-gray-700"
         >
           &gt;
         </button>
       </div>
 
+      {/* Weekday Header */}
       <div className="grid grid-cols-7 text-center font-medium text-gray-600 border-t border-b py-2">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div key={day}>{day}</div>
         ))}
       </div>
 
-      <div className="grid grid-cols-7 text-center text-sm mt-2">
-        {daysArray.map((day, index) => {
-          const fullDate = day ? currentDate.date(day) : null;
-          const dateKey = fullDate?.format('YYYY-MM-DD');
-          const isToday = fullDate?.isSame(dayjs(), 'day');
-          const completedCount = habits.reduce((count, habit) => 
-            count + (habit.dates?.includes(dateKey) ? 1 : 0), 0);
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 text-sm mt-2 gap-1">
+        {daysArray.map((day, idx) => {
+          const fullDate = day ? dayjs(startOfMonth).date(day) : null;
+          const dateKey = fullDate?.format("YYYY-MM-DD");
+          const isToday = fullDate?.isSame(today, "day");
 
           return (
             <div
-              key={index}
-              className={`h-24 border cursor-pointer p-1 text-left relative
-                ${!day ? 'bg-gray-100 text-gray-400 cursor-default' : ''} 
-                ${isToday ? 'border-2 border-blue-500' : ''}
-                hover:bg-blue-50 transition`}
+              key={idx}
+              className={`min-h-[140px] border p-2 relative overflow-y-auto rounded ${
+                !day ? "bg-gray-100 text-gray-400" : "bg-white"
+              } ${isToday ? "border-2 border-blue-500" : ""}`}
             >
-              <div className="font-semibold flex justify-between">
-                <span>{day || ''}</span>
-                {completedCount > 0 && (
-                  <span className="text-xs bg-green-100 text-green-800 px-1 rounded">
-                    {completedCount}/{habits.length}
-                  </span>
-                )}
+              {/* Day header */}
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-semibold">{day || ""}</span>
               </div>
 
-              <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-1">
-                {habits.map((habit) => {
-                  const isDone = habit.dates?.includes(dateKey);
-                  return (
-                    <div 
-                      key={habit.name}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (day) markComplete(habit.name, fullDate);
-                      }}
-                      className={`w-2 h-2 rounded-full cursor-pointer 
-                        ${isDone ? 'bg-green-500' : 'bg-gray-300 hover:bg-gray-400'}`}
-                      title={`${habit.name}: ${isDone ? 'Completed' : 'Mark complete'}`}
+              {day && (
+                <div className="space-y-1">
+                  {habits.length === 0 ? (
+                    <p className="text-xs text-gray-400 italic">
+                      No habits found
+                    </p>
+                  ) : (
+                    habits.map((habit) => {
+                      const formattedDates = habit.dates_completed?.map((d) =>
+                        dayjs(d).format("YYYY-MM-DD")
+                      );
+                      const isDone = formattedDates?.includes(dateKey);
 
-
-/>
-                  );
-                })}
-              </div>
+                      return (
+                        <div
+                          key={habit._id}
+                          className="flex items-center justify-between bg-gray-50 rounded px-1 py-0.5 hover:bg-blue-50 transition"
+                        >
+                          <span className="truncate text-xs font-medium">
+                            {habit.habit_name}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={isDone || false}
+                            disabled={!isToday} // only today clickable
+                            onChange={() => toggleHabitCompletion(habit._id)}
+                            className={`cursor-pointer accent-green-600 ${
+                              !isToday
+                                ? "opacity-50 cursor-not-allowed"
+                                : ""
+                            }`}
+                            title={
+                              !isToday
+                                ? "You can only mark today's habits"
+                                : isDone
+                                ? "Mark as incomplete"
+                                : "Mark as complete"
+                            }
+                          />
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

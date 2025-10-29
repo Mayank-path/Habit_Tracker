@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import axios from '../api/axios';
 
 const Manage = () => {
   const [showInput, setShowInput] = useState(false);
   const [habitName, setHabitName] = useState('');
   const [habits, setHabits] = useState([]);
-  const { user } = useAuth();
+  const { user,token } = useAuth();
 
   const handleAddHabitClick = () => setShowInput(true);
 
@@ -15,68 +16,55 @@ const Manage = () => {
     if (!habitName.trim()) return alert("Habit name cannot be empty");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${user?._id}/addHabit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: habitName })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setHabits(data.habits);
-        setHabitName('');
-        setShowInput(false);
-      } else {
-        alert(data.message || 'Failed to add habit');
-      }
+      const {data} = await axios.post(`/habits/addHabit`,{ 
+          habit_name : habitName},{
+          headers : {Authorization : `Bearer ${token}`}
+      })
+      alert('habit added succssfully')
+      setHabits(prev => [...prev, data.habit]); 
+    setHabitName('');
+    setShowInput(false);
     } catch (err) {
       console.error(err);
       alert('Server error');
+      console.log(token)
     }
   };
 
-  const handleDeleteHabit = async (habitNameToDelete) => {
-    if (!window.confirm(`Delete habit "${habitNameToDelete}"?`)) return;
+  const handleDeleteHabit = async (_id) => {
+   
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/auth/${user?._id}/deleteHabit/${habitNameToDelete}`,
-        { method: 'DELETE' }
-      );
+        await axios.delete(`/habits/deleteHabit/${_id}`,
+        
+        { headers : {Authorization : `Bearer ${token}` },
+        
+      })
 
-      if (response.ok) {
-        setHabits(prev => prev.filter(h => h.name !== habitNameToDelete));
-      } else {
-        alert('Failed to delete habit');
-      }
+      alert('habit delted successfully')
+      setHabits(prev => prev.filter(h => h._id !== _id));
+      
+        
+      
     } catch (err) {
       console.error(err);
       alert('Server error');
     }
   };
 
-  const handleEditHabit = async (oldHabitName) => {
+  const handleEditHabit = async (id,oldHabitName) => {
     const newHabitName = prompt('Enter new habit name:', oldHabitName);
     if (!newHabitName || newHabitName === oldHabitName) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/auth/${user?._id}/editHabit/${oldHabitName}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ newName: newHabitName })
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setHabits(data.habits);
-      } else {
-        alert(data.message || 'Failed to rename habit');
-      }
+      const {data} = await axios.put(`/habits/update/${id}`,
+        {newHabitName },
+        {headers : {Authorization : `Bearer ${token}`}}
+      )
+      
+      alert("habit updated successfully")
+      fetchHabits()
+      
     } catch (err) {
       console.error(err);
       alert('Server error');
@@ -85,17 +73,18 @@ const Manage = () => {
 
   const fetchHabits = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${user?._id}/stats`);
-      const data = await response.json();
-      if (data.stats) setHabits(data.stats.map(h => ({ name: h.name })));
+      const {data} = await axios.get("/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
+      setHabits(data)
+      
+     
     } catch (err) {
       console.error('Fetch error:', err);
     }
   };
 
   useEffect(() => {
-    if (user?._id) fetchHabits();
-  }, [user?._id]);
+    if (token) fetchHabits();
+  }, [token]);
 
   return (
     <div className="bg-white shadow rounded-lg p-6 max-w-xl mx-auto mt-10">
@@ -127,22 +116,22 @@ const Manage = () => {
         </div>
       )}
 
-      {habits.length > 0 ? (
+      {habits?.length > 0 ? (
         <div className="grid gap-3">
           {habits.map((habit, index) => (
             <div key={index} className="border rounded p-3 shadow-sm bg-gray-50 flex justify-between items-center">
-              <span className="text-lg font-medium">{habit.name}</span>
+              <span className="text-lg font-medium">{habit.habit_name}</span>
               <div className="flex gap-4">
                 <button
 
 
-onClick={() => handleEditHabit(habit.name)}
+onClick={() => handleEditHabit(habit._id, habit.habit_name)}
                   className="hover:bg-blue-600 hover:text-white rounded px-6 py-2"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDeleteHabit(habit.name)}
+                  onClick={() => handleDeleteHabit(habit._id)}
                   className="hover:bg-blue-600 hover:text-white rounded px-4 py-2"
                 >
                   Delete

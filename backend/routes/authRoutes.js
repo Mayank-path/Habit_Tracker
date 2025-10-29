@@ -24,10 +24,11 @@ router.post("/register",async(req,res)=>{
             email,
             password:hashedPassword
         })
+        
+        const abc = await user.save()
+        console.log(abc)
 
-        await user.save()
-
-        const token = jwt.sign({ userId: user._id}, JWT_SECRET, {expiresIn : '10m'})
+        const token = jwt.sign({ userId: user._id}, JWT_SECRET , {expiresIn : '1w'})
         res.status(201).json({
             message: "User registered succsfully",
             token,
@@ -35,6 +36,7 @@ router.post("/register",async(req,res)=>{
         })
     }catch(err){
         res.status(500).json({error: "user registration failed"})
+        console.log(err)
         console.log(req.body)
     }
     
@@ -55,7 +57,7 @@ router.post("/login",async(req,res)=>{
 
         }
 
-        const token = jwt.sign({userId:user._id},JWT_SECRET,{expiresIn: "10m"})
+        const token = jwt.sign({userId:user._id},JWT_SECRET,{expiresIn: "1w"})
 
         res.json({message:"login successfull",token,userId:user._Id})
     }catch(err){
