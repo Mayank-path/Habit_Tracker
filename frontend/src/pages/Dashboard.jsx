@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Manage from '../components/manage';
 import Stat from '../components/stat';
-import dayjs from 'dayjs';
 import Calendar from '../components/calendar';
 import { useAuth } from '../auth/AuthContext';
 import axios from '../api/axios';
