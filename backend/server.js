@@ -21,7 +21,7 @@ app.use(cors({
 
 const PORT = process.env.PORT
 
-mongod.connect(process.env.MONGO_URL)
+mongod.connect(process.env.MONGO_URI)
 .then(()=>console.log("connection with mongodb server succesfull"))
 .catch(err => console.error("connection with server failed",err)) 
 
