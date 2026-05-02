@@ -15,7 +15,7 @@ const Stats = () => {
   const [habits, setHabits] = useState([]);
   const [selectedHabit, setSelectedHabit] = useState(null);
 
-  // Fetch all habits
+  
   useEffect(() => {
     const fetchHabits = async () => {
       try {
@@ -31,7 +31,7 @@ const Stats = () => {
     if (token) fetchHabits();
   }, [token]);
 
-  // Calculate habit statistics
+  
   const calculateStats = (habit) => {
     if (!habit?.dates_completed?.length) {
       return { total: 0, weekly: 0, monthly: 0 };

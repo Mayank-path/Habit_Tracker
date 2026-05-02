@@ -6,7 +6,7 @@ const habit_data = new moongose.Schema({
     habit_name:{type:String, required:true},
     description:{type:String, required:false, default:""},
     createdAt:{type:Date,require:true, default:Date.now},
-    dates_completed:{type:[Date],default:[]},
+    dates_completed:{type:[String],default:[]},
     frequency:{type:Number,default:0}
 })
 
