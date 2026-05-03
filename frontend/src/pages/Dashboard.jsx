@@ -15,7 +15,7 @@ const Card = () => {
     
     const fetchHabits = useCallback(async () => {
       try {
-        const {data} = await axios.get("/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
+        const {data} = await axios.get("/api/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
         SetHabits(data)
         Setnoofhabit(data.length)
         
@@ -27,7 +27,7 @@ const Card = () => {
 
     const fetchCompletedToday = useCallback(async () => {
       try {
-        const { data } = await axios.get("/habits/completeHabit", {
+        const { data } = await axios.get("/api/habits/completeHabit", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setComplete(data.count); 

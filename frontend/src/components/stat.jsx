@@ -19,7 +19,7 @@ const Stats = () => {
   useEffect(() => {
     const fetchHabits = async () => {
       try {
-        const { data } = await axios.get("/habits/showHabit", {
+        const { data } = await axios.get("/api/habits/showHabit", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setHabits(data);

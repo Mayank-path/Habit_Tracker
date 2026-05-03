@@ -24,7 +24,7 @@ const Calendar = () => {
   const fetchHabits = async () => {
     if (!token) return;
     try {
-      const { data } = await axios.get("/habits/showHabit", {
+      const { data } = await axios.get("/api/habits/showHabit", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setHabits(Array.isArray(data) ? data : data.habits || []);
@@ -59,7 +59,7 @@ const Calendar = () => {
     // Send to backend
     try {
       await axios.put(
-        `/habits/markHbait/${habitId}`,
+        `/api/habits/markHbait/${habitId}`,
         { date },
         { headers: { Authorization: `Bearer ${token}` } }
       );

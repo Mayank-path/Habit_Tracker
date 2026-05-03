@@ -16,7 +16,7 @@ const Manage = () => {
     if (!habitName.trim()) return alert("Habit name cannot be empty");
 
     try {
-      const {data} = await axios.post(`/habits/addHabit`,{ 
+      const {data} = await axios.post(`/api/habits/addHabit`,{ 
           habit_name : habitName},{
           headers : {Authorization : `Bearer ${token}`}
       })
@@ -35,7 +35,7 @@ const Manage = () => {
    
 
     try {
-        await axios.delete(`/habits/deleteHabit/${_id}`,
+        await axios.delete(`/api/habits/deleteHabit/${_id}`,
         
         { headers : {Authorization : `Bearer ${token}` },
         
@@ -57,7 +57,7 @@ const Manage = () => {
     if (!newHabitName || newHabitName === oldHabitName) return;
 
     try {
-      const {data} = await axios.put(`/habits/update/${id}`,
+      const {data} = await axios.put(`/api/habits/update/${id}`,
         {newHabitName },
         {headers : {Authorization : `Bearer ${token}`}}
       )
@@ -73,7 +73,7 @@ const Manage = () => {
 
   const fetchHabits = async () => {
     try {
-      const {data} = await axios.get("/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
+      const {data} = await axios.get("/api/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
       setHabits(data)
       
      
