@@ -33,11 +33,11 @@ const Calendar = () => {
     }
   };
 
-  // Toggle completion for today
+  
   const toggleHabitCompletion = async (habitId) => {
-    const date = today.toDate(); // send Date object
+    const date = today.format("YYYY-MM-DD"); 
 
-    // Optimistic UI update
+    
     setHabits((prev) =>
       prev.map((habit) => {
         if (habit._id !== habitId) return habit;

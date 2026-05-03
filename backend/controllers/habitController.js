@@ -72,32 +72,48 @@ const deleteHabit = async(req,res)=>{
     }
 }
 
-const markHabit = async(req,res)=>{
-    try{
-        const {id} = req.params
-       const {date} = req.body
-        if(!date){
-            return res.status(400).json({error : "date is not given "})
-        }
-        const markHabit = await Habit.findOneAndUpdate(
-            {_id : id, userId : req.user.userId},
-            {$addToSet : {dates_completed : date}},
-            {new : true}
-        )
-        if(!markHabit){
-            console.log(req.params.id)
-            console.log(req.user.userId)
-            console.log(req.body)
-
-            return res.status(400).json({error : "no habit found to mark or not authorized"})
-        }
-        return res.json({message: "Habit marked succesfully"})
-    }catch(err){
-        console.log(err)
-        return res.status(500).json({error : "Server error"})
+const markHabit = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { date } = req.body;
+  
+      if (!date) {
+        return res.status(400).json({ error: "date is not given" });
+      }
+  
+      const habit = await Habit.findOne({
+        _id: id,
+        userId: req.user.userId
+      });
+  
+      if (!habit) {
+        return res.status(400).json({
+          error: "no habit found to mark or not authorized"
+        });
+      }
+  
+      const alreadyMarked = habit.dates_completed.includes(date);
+  
+      if (alreadyMarked) {
+        habit.dates_completed = habit.dates_completed.filter(
+          (d) => d !== date
+        );
+      } else {
+        habit.dates_completed.push(date);
+      }
+  
+      await habit.save();
+  
+      return res.json({
+        message: "Habit updated successfully",
+        habit
+      });
+  
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ error: "Server error" });
     }
-        
-}
+  };
 
 const completeHabit = async(req,res)=>{
     try{

@@ -22,7 +22,7 @@ const Stats = () => {
         const { data } = await axios.get("/api/habits/showHabit", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setHabits(data);
+        setHabits(data.habits || []);
       } catch (err) {
         console.error("Error fetching habits:", err);
       }
