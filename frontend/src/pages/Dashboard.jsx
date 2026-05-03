@@ -30,17 +30,22 @@ const Card = () => {
         const { data } = await axios.get("/api/habits/completeHabit", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setComplete(data.count || 0); 
+        console.log("API response:", data);
+        console.log("count received:", data.count);
+
+        setComplete(data.count); 
       } catch (err) {
         console.error("Error fetching today's completed habits:", err);
       }
     }, [token]);
 
     useEffect(() => {
-      fetchHabits()
-      fetchCompletedToday()
-    },[fetchHabits,fetchCompletedToday])
-     
+      if (!token) return;
+    
+      fetchHabits();
+      fetchCompletedToday();
+    }, [token]);
+    console.log("complete state =", complete);
     return (
       <div className="min-h-screen bg-gray-50 px-4 py-8">
         {/* Header */}

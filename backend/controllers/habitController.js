@@ -118,7 +118,9 @@ const markHabit = async (req, res) => {
 
   const completeHabit = async (req, res) => {
     try {
-        const todayStr = dayjs().format("YYYY-MM-DD");
+        const todayStr = new Date().toLocaleDateString("en-CA", {
+            timeZone: "Asia/Kolkata"
+          });
   
       const habits = await Habit.find({
         userId: req.user.userId
