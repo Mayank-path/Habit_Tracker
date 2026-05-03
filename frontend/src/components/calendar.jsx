@@ -41,14 +41,10 @@ const Calendar = () => {
     setHabits((prev) =>
       prev.map((habit) => {
         if (habit._id !== habitId) return habit;
-        const isDone = habit.dates_completed?.some((d) =>
-          dayjs(d).isSame(today, "day")
-        );
+        const isDone = habit.dates_completed?.includes(date);
         let newDates;
         if (isDone) {
-          newDates = habit.dates_completed.filter(
-            (d) => !dayjs(d).isSame(today, "day")
-          );
+          newDates = habit.dates_completed.filter((d) => d !== date);
         } else {
           newDates = [...habit.dates_completed, date];
         }
@@ -59,7 +55,7 @@ const Calendar = () => {
     // Send to backend
     try {
       await axios.put(
-        `/api/habits/markHbait/${habitId}`,
+        `/api/habits/markHabit/${habitId}`,
         { date },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -1,4 +1,5 @@
 const Habit = require('../models/habits')
+const dayjs = require('dayjs')
 
 const createHabit = async(req,res)=>{
     try{
@@ -115,23 +116,28 @@ const markHabit = async (req, res) => {
     }
   };
 
-const completeHabit = async(req,res)=>{
-    try{
-        
-        const todayStr = new Date().toISOString().split('T')[0];
-        
-        
+  const completeHabit = async (req, res) => {
+    try {
+        const todayStr = dayjs().format("YYYY-MM-DD");
+  
+      const habits = await Habit.find({
+        userId: req.user.userId
+      });
+  
+      const completedToday = habits.filter((habit) =>
+        habit.dates_completed?.includes(todayStr)
+      );
 
-        const habits = await Habit.find(
-            {userId: req.user.userId, dates_completed:{$in : [todayStr]}}
-        )
-        res.json({
-            date: todayStr,
-            count: habits.length,
-            habits
-        })
-    }catch(err){
-        return res.status(500).json({error : "server error"})
+      console.log("todayStr =", todayStr);
+  
+      return res.json({
+        count: completedToday.length,
+        habits: completedToday
+      });
+  
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ error: "server error" });
     }
-}
+  };
 module.exports = {createHabit,getHabit,updateHabit,deleteHabit,markHabit,completeHabit}

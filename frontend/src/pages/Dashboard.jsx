@@ -16,8 +16,8 @@ const Card = () => {
     const fetchHabits = useCallback(async () => {
       try {
         const {data} = await axios.get("/api/habits/showHabit",{headers : {Authorization : `Bearer ${token}`}});
-        SetHabits(data)
-        Setnoofhabit(data.length)
+        SetHabits(data.habits || []);
+        Setnoofhabit(data.habits?.length || 0);
         
        
       } catch (err) {
@@ -30,7 +30,7 @@ const Card = () => {
         const { data } = await axios.get("/api/habits/completeHabit", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setComplete(data.count); 
+        setComplete(data.count || 0); 
       } catch (err) {
         console.error("Error fetching today's completed habits:", err);
       }
